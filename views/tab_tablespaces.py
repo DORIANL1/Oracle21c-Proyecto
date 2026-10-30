@@ -1,10 +1,11 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 class TablespacesTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
 
         self.grid_columnconfigure(0, weight=1)
@@ -30,18 +31,11 @@ class TablespacesTab(ctk.CTkFrame):
         btn_refresh.pack(side="right")
 
         # Pestañas Resumen y Datafiles
-        self.tabs_view = ctk.CTkTabview(self)
+        self.tabs_view = ctk.CTkTabview(self, fg_color=COLORS["surface"])
         self.tabs_view.grid(row=1, column=0, padx=20, pady=5, sticky="nsew")
 
         tab_resumen = self.tabs_view.add("Resumen de Tablespaces")
         tab_datafiles = self.tabs_view.add("Detalle de Datafiles")
-
-        # Estilo para Treeview
-        style = ttk.Style()
-        style.theme_use("clam")
-        style.configure("Treeview", background="#2b2b2b", foreground="white", fieldbackground="#2b2b2b", rowheight=26)
-        style.configure("Treeview.Heading", background="#1f1f1f", foreground="white", relief="flat")
-        style.map("Treeview", background=[("selected", "#1f538d")])
 
         # Tabla Resumen
         cols_resumen = ("tablespace", "total", "usado", "libre", "pct_usado", "pct_libre")
@@ -82,7 +76,7 @@ class TablespacesTab(ctk.CTkFrame):
         scroll_df.pack(side="right", fill="y", pady=10)
 
         # Barra de Operaciones
-        actions_frame = ctk.CTkFrame(self)
+        actions_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         actions_frame.grid(row=2, column=0, padx=20, pady=(5, 15), sticky="ew")
 
         btn_create = ctk.CTkButton(actions_frame, text="Crear Tablespace", command=self.open_create_dialog)
@@ -152,7 +146,7 @@ class TablespacesTab(ctk.CTkFrame):
                 self.tree_df.insert("", "end", values=row)
 
         except Exception as e:
-            messagebox.showerror("Error SQL", f"Fallo al consultar tablespaces:\n{str(e)}")
+            show_operation_error(self, "consultar los tablespaces y sus datafiles", e)
         finally:
             cursor.close()
 
@@ -163,7 +157,8 @@ class TablespacesTab(ctk.CTkFrame):
         try:
             cursor.execute("SELECT tablespace_name FROM dba_tablespaces ORDER BY tablespace_name")
             return [r[0] for r in cursor.fetchall()]
-        except Exception:
+        except Exception as e:
+            show_operation_error(self, "cargar la lista de tablespaces", e)
             return []
         finally:
             cursor.close()
@@ -175,7 +170,8 @@ class TablespacesTab(ctk.CTkFrame):
         try:
             cursor.execute("SELECT file_name FROM dba_data_files ORDER BY file_name")
             return [r[0] for r in cursor.fetchall()]
-        except Exception:
+        except Exception as e:
+            show_operation_error(self, "cargar la lista de datafiles", e)
             return []
         finally:
             cursor.close()
@@ -236,7 +232,7 @@ class TablespacesTab(ctk.CTkFrame):
                 dialog.destroy()
                 self.load_data()
             except Exception as e:
-                messagebox.showerror("Error de Oracle", str(e), parent=dialog)
+                show_operation_error(dialog, "crear el tablespace", e)
             finally:
                 cursor.close()
 
@@ -288,7 +284,7 @@ class TablespacesTab(ctk.CTkFrame):
                 dialog.destroy()
                 self.load_data()
             except Exception as e:
-                messagebox.showerror("Error de Oracle", str(e), parent=dialog)
+                show_operation_error(dialog, "agregar el datafile", e)
             finally:
                 cursor.close()
 
@@ -336,7 +332,7 @@ class TablespacesTab(ctk.CTkFrame):
                 dialog.destroy()
                 self.load_data()
             except Exception as e:
-                messagebox.showerror("Error de Oracle", str(e), parent=dialog)
+                show_operation_error(dialog, "redimensionar el datafile", e)
             finally:
                 cursor.close()
 

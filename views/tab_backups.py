@@ -5,11 +5,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import customtkinter as ctk
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 
 class BackupsTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent, fg_color="transparent")
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
         # Diccionario {NOMBRE_DIRECTORIO: RUTA_FISICA}
         self.directories_map = {}
@@ -39,7 +40,7 @@ class BackupsTab(ctk.CTkFrame):
         btn_refresh_all.pack(side="right")
 
         # Contenedor de las 3 sub-pestañas
-        self.tabview = ctk.CTkTabview(self)
+        self.tabview = ctk.CTkTabview(self, fg_color=COLORS["surface"])
         self.tabview.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
 
         self.tab_dirs = self.tabview.add("1. Directorios de Oracle")
@@ -55,25 +56,7 @@ class BackupsTab(ctk.CTkFrame):
         self._auto_sync_loop()
 
     def _setup_treeview_style(self):
-        style = ttk.Style()
-        style.theme_use("default")
-        style.configure(
-            "Dark.Treeview",
-            background="#2b2b2b",
-            foreground="#ffffff",
-            fieldbackground="#2b2b2b",
-            rowheight=26,
-            borderwidth=0,
-            font=("Segoe UI", 10)
-        )
-        style.configure(
-            "Dark.Treeview.Heading",
-            background="#1f538d",
-            foreground="#ffffff",
-            font=("Segoe UI", 10, "bold"),
-            relief="flat"
-        )
-        style.map("Dark.Treeview", background=[("selected", "#1f6aa5")])
+        ttk.Style(self).configure("Treeview", rowheight=28)
 
     def _auto_sync_loop(self):
         is_conn = self.db.is_connected()
@@ -93,7 +76,7 @@ class BackupsTab(ctk.CTkFrame):
         self.tab_dirs.grid_rowconfigure(1, weight=1)
         self.tab_dirs.grid_columnconfigure(0, weight=1)
 
-        form_frame = ctk.CTkFrame(self.tab_dirs)
+        form_frame = ctk.CTkFrame(self.tab_dirs, fg_color=COLORS["surface"])
         form_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         form_frame.grid_columnconfigure(3, weight=1)
 
@@ -123,13 +106,13 @@ class BackupsTab(ctk.CTkFrame):
         )
         btn_create_dir.grid(row=0, column=5, padx=10, pady=12)
 
-        table_container = ctk.CTkFrame(self.tab_dirs)
+        table_container = ctk.CTkFrame(self.tab_dirs, fg_color=COLORS["surface"])
         table_container.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
         table_container.grid_rowconfigure(0, weight=1)
         table_container.grid_columnconfigure(0, weight=1)
 
         columns = ("owner", "name", "path")
-        self.tree_dirs = ttk.Treeview(table_container, columns=columns, show="headings", style="Dark.Treeview")
+        self.tree_dirs = ttk.Treeview(table_container, columns=columns, show="headings")
         self.tree_dirs.heading("owner", text="PROPIETARIO")
         self.tree_dirs.heading("name", text="NOMBRE DEL DIRECTORIO (DBA_DIRECTORIES)")
         self.tree_dirs.heading("path", text="RUTA FÍSICA DEL SISTEMA DE ARCHIVOS")
@@ -185,7 +168,7 @@ class BackupsTab(ctk.CTkFrame):
                 self.load_dmp_files(default_dir)
 
         except Exception as e:
-            messagebox.showerror("Error en DBA_DIRECTORIES", f"No se pudieron consultar los directorios:\n{e}")
+            show_operation_error(self, "consultar los directorios de Oracle", e)
 
     def create_or_replace_directory(self):
         if not self.db.is_connected():
@@ -226,7 +209,7 @@ class BackupsTab(ctk.CTkFrame):
             self.load_dmp_files(dir_name)
 
         except Exception as e:
-            messagebox.showerror("Error en Oracle", f"Error al ejecutar CREATE OR REPLACE DIRECTORY:\n{e}")
+            show_operation_error(self, "crear o reemplazar el directorio Oracle", e)
 
     
     # 2. SUB-PESTAÑA DE RESPALDOS (expdp)
@@ -234,7 +217,7 @@ class BackupsTab(ctk.CTkFrame):
         self.tab_exp.grid_rowconfigure(2, weight=1)
         self.tab_exp.grid_columnconfigure(0, weight=1)
 
-        form = ctk.CTkFrame(self.tab_exp)
+        form = ctk.CTkFrame(self.tab_exp, fg_color=COLORS["surface"])
         form.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
         ctk.CTkLabel(form, text="Directorio Oracle:").grid(row=0, column=0, padx=10, pady=8, sticky="w")
@@ -341,8 +324,8 @@ class BackupsTab(ctk.CTkFrame):
                 self.combo_schema_helper.set(users[0])
                 self.combo_imp_schema_helper.configure(values=users)
                 self.combo_imp_schema_helper.set(users[0])
-        except Exception:
-            pass
+        except Exception as e:
+            show_operation_error(self, "cargar la lista de esquemas", e)
 
     def run_expdp_backup(self):
         if not self.db.is_connected():
@@ -392,7 +375,7 @@ class BackupsTab(ctk.CTkFrame):
         self.tab_imp.grid_rowconfigure(2, weight=1)
         self.tab_imp.grid_columnconfigure(0, weight=1)
 
-        form = ctk.CTkFrame(self.tab_imp)
+        form = ctk.CTkFrame(self.tab_imp, fg_color=COLORS["surface"])
         form.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
         ctk.CTkLabel(form, text="Directorio Oracle:").grid(row=0, column=0, padx=10, pady=8, sticky="w")

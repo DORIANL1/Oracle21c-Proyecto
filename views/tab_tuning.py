@@ -1,10 +1,11 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 class TuningTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -13,7 +14,7 @@ class TuningTab(ctk.CTkFrame):
         header.grid(row=0, column=0, padx=20, pady=(15, 10), sticky="ew")
         ctk.CTkLabel(header, text="Tuning y Optimización de Consultas", font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
-        plan_frame = ctk.CTkFrame(self)
+        plan_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         plan_frame.grid(row=1, column=0, padx=20, pady=5, sticky="nsew")
         plan_frame.grid_columnconfigure(0, weight=1)
         plan_frame.grid_rowconfigure(3, weight=1)
@@ -27,7 +28,7 @@ class TuningTab(ctk.CTkFrame):
         self.txt_result = ctk.CTkTextbox(plan_frame, font=ctk.CTkFont(family="Courier", size=12))
         self.txt_result.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
 
-        actions_frame = ctk.CTkFrame(self)
+        actions_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         actions_frame.grid(row=2, column=0, padx=20, pady=(5, 15), sticky="ew")
         
         ctk.CTkButton(actions_frame, text="Recolectar Estadísticas (DBMS_STATS)", command=self.open_stats_dialog).pack(side="left", padx=10, pady=10)
@@ -58,7 +59,7 @@ class TuningTab(ctk.CTkFrame):
             for row in cursor.fetchall():
                 self.txt_result.insert("end", row[0] + "\n")
         except Exception as e:
-            messagebox.showerror("Error SQL", str(e))
+            show_operation_error(self, "generar el plan de ejecución", e)
         finally:
             cursor.close()
 
@@ -96,7 +97,7 @@ class TuningTab(ctk.CTkFrame):
                 messagebox.showinfo("Éxito", f"Estadísticas recolectadas para {schema}.{table}.", parent=dialog)
                 dialog.destroy()
             except Exception as e:
-                messagebox.showerror("Error de Oracle", str(e), parent=dialog)
+                show_operation_error(dialog, "recolectar las estadísticas", e)
             finally:
                 cursor.close()
 
@@ -146,7 +147,7 @@ class TuningTab(ctk.CTkFrame):
                 messagebox.showinfo("Éxito", f"Índice {'creado' if accion == 'CREATE' else 'eliminado'} exitosamente.", parent=dialog)
                 dialog.destroy()
             except Exception as e:
-                messagebox.showerror("Error de Oracle", str(e), parent=dialog)
+                show_operation_error(dialog, f"{'crear' if accion == 'CREATE' else 'eliminar'} el índice", e)
             finally:
                 cursor.close()
 

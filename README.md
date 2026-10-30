@@ -62,7 +62,11 @@ Usuario: SYS (o SYSTEM)
 
 Rol: Seleccionar SYSDBA (si se conecta con SYS)
 
+## Entregables de Control de Calidad y Demostración
 
+* [Manual de Usuario](docs/manual_usuario.html): documento imprimible organizado en cuatro páginas.
+* [Guion de presentación](docs/guion_presentacion.md): preparación, recorrido de módulos y demostración de respaldo y recuperación.
+* [Datos SQL de demostración](demo/demo_data.sql): crea el esquema ficticio `DEMO_APP`, con las tablas `DEMO_CLIENTES` y `DEMO_PEDIDOS` pobladas. Ejecútalo una sola vez como `SYSTEM` en `XEPDB1`.
 
 
 

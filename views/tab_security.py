@@ -1,10 +1,11 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 class SecurityTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
 
         self.grid_columnconfigure(0, weight=1)
@@ -28,7 +29,7 @@ class SecurityTab(ctk.CTkFrame):
         )
         btn_refresh.pack(side="right")
 
-        table_frame = ctk.CTkFrame(self)
+        table_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         table_frame.grid(row=1, column=0, padx=20, pady=5, sticky="nsew")
 
         cols = ("username", "status", "default_ts", "temp_ts", "created")
@@ -47,7 +48,7 @@ class SecurityTab(ctk.CTkFrame):
         self.tree_users.pack(side="left", fill="both", expand=True, padx=(10, 0), pady=10)
         scroll_u.pack(side="right", fill="y", pady=10)
 
-        actions_frame = ctk.CTkFrame(self)
+        actions_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         actions_frame.grid(row=2, column=0, padx=20, pady=(5, 15), sticky="ew")
 
         btn_create_user = ctk.CTkButton(actions_frame, text="Crear Usuario", command=self.open_create_user_dialog)
@@ -88,19 +89,20 @@ class SecurityTab(ctk.CTkFrame):
             for row in cursor.fetchall():
                 self.tree_users.insert("", "end", values=row)
         except Exception as e:
-            messagebox.showerror("Error SQL", f"No se pudo cargar la lista de usuarios:\n{str(e)}")
+            show_operation_error(self, "cargar la lista de usuarios", e)
         finally:
             cursor.close()
 
     def get_tablespaces_list(self):
         cursor = self.get_cursor()
         if not cursor:
-            return ["USERS"]
+            return []
         try:
             cursor.execute("SELECT tablespace_name FROM dba_tablespaces ORDER BY tablespace_name")
             return [r[0] for r in cursor.fetchall()]
-        except Exception:
-            return ["USERS"]
+        except Exception as e:
+            show_operation_error(self, "cargar la lista de tablespaces", e)
+            return []
         finally:
             cursor.close()
 
@@ -111,7 +113,8 @@ class SecurityTab(ctk.CTkFrame):
         try:
             cursor.execute("SELECT username FROM dba_users ORDER BY username")
             return [r[0] for r in cursor.fetchall()]
-        except Exception:
+        except Exception as e:
+            show_operation_error(self, "cargar la lista de usuarios", e)
             return []
         finally:
             cursor.close()
@@ -172,7 +175,7 @@ class SecurityTab(ctk.CTkFrame):
                 dialog.destroy()
                 self.load_users()
             except Exception as e:
-                messagebox.showerror("Error al crear usuario", str(e), parent=dialog)
+                show_operation_error(dialog, "crear el usuario", e)
             finally:
                 cursor.close()
 
@@ -200,8 +203,8 @@ class SecurityTab(ctk.CTkFrame):
             try:
                 cursor.execute("SELECT role FROM dba_roles ORDER BY role")
                 roles = [r[0] for r in cursor.fetchall()]
-            except Exception:
-                pass
+            except Exception as e:
+                show_operation_error(self, "cargar la lista de roles", e)
             finally:
                 cursor.close()
 
@@ -228,7 +231,7 @@ class SecurityTab(ctk.CTkFrame):
                 cur.execute(sql)
                 messagebox.showinfo("Éxito", f"{accion} del rol '{role}' sobre '{user}' completado.", parent=dialog)
             except Exception as e:
-                messagebox.showerror("Error de Permisos", str(e), parent=dialog)
+                show_operation_error(dialog, f"{accion.lower()} el rol", e)
             finally:
                 cur.close()
 
@@ -260,8 +263,8 @@ class SecurityTab(ctk.CTkFrame):
             try:
                 cursor.execute("SELECT name FROM system_privilege_map ORDER BY name")
                 privs = [r[0] for r in cursor.fetchall()]
-            except Exception:
-                pass
+            except Exception as e:
+                show_operation_error(self, "cargar la lista de privilegios", e)
             finally:
                 cursor.close()
 
@@ -288,7 +291,7 @@ class SecurityTab(ctk.CTkFrame):
                 cur.execute(sql)
                 messagebox.showinfo("Éxito", f"{accion} de '{priv}' a '{user}' completado.", parent=dialog)
             except Exception as e:
-                messagebox.showerror("Error de Privilegio", str(e), parent=dialog)
+                show_operation_error(dialog, f"{accion.lower()} el privilegio", e)
             finally:
                 cur.close()
 

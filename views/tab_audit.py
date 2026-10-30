@@ -1,10 +1,11 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 class AuditTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
@@ -13,7 +14,7 @@ class AuditTab(ctk.CTkFrame):
         header.grid(row=0, column=0, padx=20, pady=(15, 5), sticky="ew")
         ctk.CTkLabel(header, text="Auditoría del Sistema", font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
-        filter_frame = ctk.CTkFrame(self)
+        filter_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         filter_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
         
         ctk.CTkLabel(filter_frame, text="Usuario:").pack(side="left", padx=10, pady=10)
@@ -22,7 +23,7 @@ class AuditTab(ctk.CTkFrame):
         
         ctk.CTkButton(filter_frame, text="Buscar", command=self.load_audit).pack(side="left", padx=20, pady=10)
 
-        table_frame = ctk.CTkFrame(self)
+        table_frame = ctk.CTkFrame(self, fg_color=COLORS["surface"])
         table_frame.grid(row=2, column=0, padx=20, pady=5, sticky="nsew")
         
         cols = ("time", "user", "action", "object", "sql")
@@ -62,6 +63,6 @@ class AuditTab(ctk.CTkFrame):
             for row in cursor.fetchall():
                 self.tree_audit.insert("", "end", values=row)
         except Exception as e:
-            messagebox.showerror("Error SQL", str(e))
+            show_operation_error(self, "consultar los registros de auditoría", e)
         finally:
             cursor.close()

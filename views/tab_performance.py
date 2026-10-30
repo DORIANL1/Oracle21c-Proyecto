@@ -1,10 +1,11 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from database.connection import DatabaseManager
+from views.ui_helpers import COLORS, show_operation_error
 
 class PerformanceTab(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color=COLORS["canvas"])
         self.db = DatabaseManager()
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -14,7 +15,7 @@ class PerformanceTab(ctk.CTkFrame):
         ctk.CTkLabel(header, text="Monitoreo de Rendimiento", font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
         ctk.CTkButton(header, text="Actualizar", width=100, command=self.load_data).pack(side="right")
 
-        self.tabs_view = ctk.CTkTabview(self)
+        self.tabs_view = ctk.CTkTabview(self, fg_color=COLORS["surface"])
         self.tabs_view.grid(row=1, column=0, padx=20, pady=5, sticky="nsew")
         tab_sessions = self.tabs_view.add("Sesiones Activas")
         tab_locks = self.tabs_view.add("Bloqueos de Objetos")
@@ -75,6 +76,6 @@ class PerformanceTab(ctk.CTkFrame):
                 self.tree_locks.insert("", "end", values=row)
                 
         except Exception as e:
-            messagebox.showerror("Error SQL", str(e))
+            show_operation_error(self, "consultar las sesiones y los bloqueos", e)
         finally:
             cursor.close()
